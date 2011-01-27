@@ -48,7 +48,7 @@ ArchitectureConcept :
 	ISService |  ISLogicalComponent | ISPhysicalComponent | DesignDecision | 
 	TIService |
 	/* ISServiceInteraction  | */
-	 ISCollaborationContract | TIServiceInteraction |
+	ISCollaborationContract | TIServiceInteraction |
 	BusinessDomain | BusinessServiceGroup | 
 	InformationDomain | InformationObjectGroup |
 	ISDomain | ISServiceGroup | ISLogicalComponentGroup |ISPhysicalComponentGroup |

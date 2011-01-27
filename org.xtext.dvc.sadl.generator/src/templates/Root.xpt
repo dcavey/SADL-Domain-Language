@@ -3,7 +3,9 @@
 
 «DEFINE Root FOR ArchitectureConcept-»
 «FILE "ServiceInformationMatrix.txt" APPOUTLET-»
-No implementation for  «this.eClass().name»  «this.name»  
+
+No implementation for  «this.eClass().name»  «this.name» 
+  
 «ENDFILE»
 «ENDDEFINE»
 
