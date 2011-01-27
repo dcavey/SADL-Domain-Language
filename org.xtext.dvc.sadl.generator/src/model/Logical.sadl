@@ -1,0 +1,7 @@
+architecture:
+
+isLogicalComponent MyComponent001
+	provides_isServices MyServiceA;
+	
+isLogicalComponent MyComponent002
+	provides_isServices MyServiceA;		

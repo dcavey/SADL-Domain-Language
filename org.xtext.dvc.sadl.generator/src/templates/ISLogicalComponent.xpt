@@ -1,0 +1,17 @@
+«IMPORT org::xtext::dvc::sadl::sadl»
+
+«EXTENSION templates::Extensions»
+
+«DEFINE Root FOR ISLogicalComponent-» 
+«FILE "XMI_MODEL.xml" APPOUTLET-»
+<packagedElement xmi:type="uml:Class" xmi:id="LISC_«this.name»" name="«this.name»" />
+«FOREACH this.isServices AS isService-»
+<packagedElement xmi:type="uml:Association" xmi:id="EP1_«this.name»_EP2_«isService.name»" name="IsServices" 
+	memberEnd="EP1_«this.name»«this.name» EP2_«this.name»«isService.name»" navigableOwnedEnd="EP2_«this.name»«isService.name»">
+	<ownedEnd xmi:id="EP1_«this.name»«this.name»" name="" type="LISC_«this.name»" association="EP1_«this.name»_EP2_«isService.name»"/>
+    <ownedEnd xmi:id="EP2_«this.name»«isService.name»" name="«isService.name»" type="ISS_«isService.name»" association="EP1_«this.name»_EP2_«isService.name»"/>
+</packagedElement>   
+«ENDFOREACH»
+«ENDFILE»
+
+«ENDDEFINE»

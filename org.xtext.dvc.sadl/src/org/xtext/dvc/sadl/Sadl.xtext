@@ -1,0 +1,285 @@
+grammar org.xtext.dvc.sadl.Sadl with org.eclipse.xtext.common.Terminals
+generate sadl "http://www.xtext.org/dvc/sadl/Sadl"
+
+// grammar org.xtext.example.kmfdsl.KmfDsl with org.eclipse.xtext.common.Terminals
+// generate kmfDsl "http://www.xtext.org/example/kmfdsl/KmfDsl"
+
+
+Model:
+	// 'model' name=ID
+		('architecture:' 	archiElements+=ArchitectureConcept+)? & 
+		('implementation:' 	impleElements+=ImplementationConcept+)? &
+		('compliance:' 		complianceElements+=ComplianceConcept+)? ;
+
+
+/*
+    'model' name=ID
+        architecture=ArchitectureModel
+        implementation=ImplementationModel
+        compliance=ComplianceModel
+    ;	
+    
+ArchitectureModel:
+	'architecture:' 	archiElements+=ArchitectureConcept+;
+	
+ImplementationModel:	
+	'implementation:' 	impleElements+=ImplementationConcept+;
+	
+ComplianceModel:
+	'compliance:' 		complianceElements+=ComplianceConcept+;
+*/
+
+
+/*--------------------------------------------------------------------------*/
+/*--------------------- Element classification -----------------------------*/
+/*--------------------------------------------------------------------------*/
+
+AbstractConcept:    //**** Do we need this level of abstraction? 
+ ArchitectureConcept | ImplementationConcept | ComplianceConcept; 
+
+ 
+
+ArchitectureConcept :
+	(BusinessRequirement | UserRequirement | SystemRequirement | 
+	Requirement | ISFeature | 
+	BusinessService | BusinessActivity | BusinessGoal | BusinessActor | BusinessRole | 
+	/* BusinessEvent   |*/
+	BusinessScenario | BusinessComponent | 
+	InformationObject | InformationElement |
+	ISService |  ISLogicalComponent | ISPhysicalComponent | DesignDecision | 
+	TIService |
+	/* ISServiceInteraction  | */
+	 ISCollaborationContract | TIServiceInteraction |
+	BusinessDomain | BusinessServiceGroup | 
+	InformationDomain | InformationObjectGroup |
+	ISDomain | ISServiceGroup | ISLogicalComponentGroup |ISPhysicalComponentGroup |
+	TIDomain | TIServiceGroup )  
+	('code' 			code = ID)?
+	('freeTextName' 	freeTextName=STRING)?
+	('description ' 	description=STRING)?
+	';' ;
+
+ImplementationConcept:
+	(ApplicationInterface | TechnicalInterface | Dataset | SourceModule | 
+	ExternalSource | ProgramFunction | DeploymentPackage )
+	('code' 			code = ID)?
+	('freeTextName' 	freeTextName=STRING)?
+	('description ' 	description=STRING)?
+	';';
+	
+ComplianceConcept: 
+	XREFImplementationToArchitecture;	
+
+	
+/*--------------------------------------------------------------------------*/
+/*-------------------- Architecture Concepts & Matrices --------------------*/
+/*--------------------------------------------------------------------------*/
+
+// Architectural Grouping Concepts (used for communication / structuring only)
+BusinessDomain : 'businessDomain' name=ID 						 ('services' services += [BusinessService]*)? ;
+BusinessServiceGroup: 'businessServiceGroup' name=ID 			 ('services' services += [BusinessService]*)? ;
+InformationDomain: 'informationDomain' name=ID 					 ('infObjs'  infObjs += [InformationObject]*)?;
+InformationObjectGroup: 'informationObjectGroup' name=ID 		 ('infObjs'  infObjs += [InformationObject]*)?;
+ISDomain : 'isDomain'  name=ID									 ('services' services += [ISService]*)? ; 
+ISServiceGroup :  'isServiceGroup' name = ID 					 ('services' services += [ISService]*)? ; 
+ISLogicalComponentGroup :  'isLogicalComponentGroup' name = ID   ('components' components+= [ISLogicalComponent]*)? ; 
+ISPhysicalComponentGroup :  'isPhyscialComponentGroup' name = ID ('components' components+= [ISPhysicalComponent]*)? ;
+TIDomain : 'tiDomain' name=ID 									 ('services' services += [TIService]*)? ; 
+TIServiceGroup: 'tiServiceGroup' name=ID 						 ('services' services += [TIService]*)? ; 
+ 
+
+
+
+/*-------------------- Requirements ----------------------------------------*/
+
+GenericRequirement: (UserRequirement | BusinessRequirement | SystemRequirement);
+
+BusinessRequirement: 'businessRequirement' name = ID ;
+UserRequirement: 'userRequirement' name = ID 
+		 	('traces_to_ur' ( userReqs += [UserRequirement]+ ) )?	
+		 	('traces_to_br' ( busReqs += [BusinessRequirement]+ ) )?	;
+SystemRequirement: 'systemRequirement' name = ID 
+		 	('traces_to_ur' ( userReqs += [UserRequirement]+ ) )?	
+		  	('traces_to_br' ( busReqs += [BusinessRequirement]+ ) )?	 ;
+
+Requirement :  'requirement'  name = ID
+	 	('satisfied_by_feature' ( isFeatures += [ISFeature]+ ) )?	;		// A01
+
+ISFeature : 'isFeature'  name = ID ;	// some Architectural Requirements may also
+									//  be IS Features (all by default?)
+
+BusinessScenario : 'businessScenario' name=ID
+		( 	('triggered_by' trigger=BusinessEvent )?
+			('sequence_of_steps' steps+=Step+ )? );
+
+Step: 'step' name=ID description=STRING (interaction=ISServiceInteraction)?;
+	
+
+/*-------------------- Business Architecture -------------------------------*/
+
+BusinessEvent :  'businessEvent' name = ID   ;
+
+BusinessActor :  'businessActor' name = ID
+	 ('takes_roles' roles +=  [BusinessRole]*   )?	 ;
+
+BusinessActivity   :  'businessActivity' name = ID   ;
+
+BusinessGoal   :  'businessGoal' name = ID ;
+	
+BusinessRole   :  'businessRole' name = ID ;	
+	
+BusinessService   :  'businessService' name = ID
+	 ('activity' activity += [BusinessActivity]   )?
+	 ('role' 	 role += [BusinessRole]   )?
+	 ('goal' 	 goal += [BusinessGoal]   )?	 	
+	 (nfrs =  NonFunctionalRequirements   )?	;
+	
+// Structure of Business Services. Types: Process, Organization, Governance
+BusinessComponent: 'businessComponent' name = ID
+	 ('services' services += [BusinessService]*)?  ;
+
+NonFunctionalRequirements: 	'nonFuncReqs' name=ID
+		('confidentiality '			confidentiality=STRING)?		// C1 or C2 or C3
+		('integrity '				integrity=STRING)?				// I1 or I2 or C3
+		('availability '			availability=STRING)?			// A1 or A2 or A3
+		('service_window '			service_window=STRING)?
+		('response_time '			response_time=STRING)?			// End-To-End response time or Service response time		
+		('throughput '				throughput=	STRING)?	
+		('growth '					growth=	STRING)?	
+		('recovery_time_objective'	recovery_time_objective=STRING)?	
+		('recovery_point_objective'	recovery_point_objective=STRING)?		
+		('average_frequency'		average_frequency=STRING)?		// average frequency of service calls per time-unit
+		('peak_frequency'			peak_frequency=STRING)?			// peak frequency of service calls per time-unit
+		('average_volume'			average_volume=STRING)?			// average volume of data per time-unit
+		('peak_volume'				peak_volume=STRING)?			// peak volume of data per time-unit  				
+		;
+
+InformationObject:	'informationObject'	name = ID 
+		('consists_of' attributes +=  [InformationElement]+)?  ;
+
+InformationElement: 'informationElement' name = ID;
+
+/*-------------------- Information System Architecture -------*/
+
+ISService: 	'isService' name = ID
+	 ('uses_information_object' 	infObjs +=  InformationObjectUsed+   )?		// A03
+	 ('non_functional_reqs'  		nfrs =  NonFunctionalRequirements  )?
+	 ('supports_business_service'  	busServices +=  [BusinessService]+  )?  ;
+	 	
+ISLogicalComponent: 'isLogicalComponent' name = ID
+	 ('implements_features'		(isFeatures += [ISFeature]+) )? 	// A04   
+ 	 ('provides_isServices' 	(isServices += [ISService]+) )? 	// A05
+	 ('requires_tiServices' 	(tiServices += [TIService]+) )? ;	// A06
+
+ISPhysicalComponent: 'isPhysicalComponent' name = ID
+	 ('realizes_logical_isComponent' 	(liscs += [ISLogicalComponent]+) )? 
+	  /* the Logical Component implies that IS Services are offered and TI services are required.
+	   * WHAT IF PHYSICAL deviated from LOGICAL? 
+	   * 	allow to specify distinct IS Services and TI Services if there is a deviation from the LISCs
+	   *	Validation rules could be added to enforce some level of Conformance / Compliance.
+	   */		 
+  	 ('provides_isServices' 			(isServices += [ISService]+) )? 
+  	 ('requires_tiServices' 			(tiServices += [TIService]+) )?	; 
+
+DesignDecision:	'designDecision'	name = ID ;
+
+ISServiceInteraction: 'isServiceInteraction'  name = ID			// aka "IS Flow"
+	('consumer' issFrom=[ISService] 'uses_service' issTo=[ISService])?
+	('using_protocol' protocol=ISInteractionProtocol )? 
+	('with_contract'  contract=[ISCollaborationContract])? ;
+
+ISCollaborationContract: 'isCollaborationContract' name = ID
+		('result'							confidentiality=STRING)?		
+		('error_handling'					integrity=STRING)?				
+		('contract_input'					availability=STRING)?			
+		('contract_output'					contract_output=STRING)?
+		('message_format'					mesage_format=STRING)?				
+		('throughput'						throughput=	STRING)?	
+		('throughput_period'				throughput_period=STRING)?	
+		('growth'							growth=STRING)?	
+		('growth_period'					growth_period=STRING)?	
+		('service_window'					service_window=STRING)?	
+		('peak_profile_short_term'			peak_profile_short_term=STRING)?	
+		('peak_profile_long_term'			peak_profile_long_term=STRING)?	
+		('characteristics'					characteristics=STRING)?	
+		('integration_mechanism'			integration_mechanism=STRING)?	
+		('response_requirements'			response_requirements=STRING)?	
+		('quality_of_information_required'	quality_of_information_required=STRING)?	
+		('contract_control_requirement'		contract_control_requirement=STRING)?	
+		('result_control_requirement'		result_control_requirement=STRING)?	
+		('importance'						importance=STRING)?											
+	;
+
+
+/*-------------------- Technology Infrastructure Architecture -------------*/
+		
+TIService: 	'tiService'	name = ID ;
+
+
+TIServiceInteraction: 'tiServiceInteraction'  name=ID			// used for "TI Flow"
+	('consumer' tisFrom=[TIService] 'uses_service' tisTo=[TIService])?
+	('supports' isFlows += [ISServiceInteraction]+  )?   ;
+
+
+ //Supporting types  for Architecture
+InformationObjectUsed: object=[InformationObject] (':' usageType=InformationUsageType)? ;
+
+
+enum InformationUsageType:  WRITE | TRANSFORM | GET;
+
+
+
+/*-------------------- Implementation Concepts --------------------*/
+
+
+Dataset: 'dataset' 	name = ID  ; 
+
+SourceModule:
+	(ProgramModule | IncludedSourceModule )
+	 ('uses_data'					(data  += DatasetUsed+) )? 						// I10
+	 ('provides_interface'			(provAppIntfs += [ApplicationInterface]+) )? 	// I11
+	 ('uses_interface'				(usedAppIntfs += [ApplicationInterface]+) )? 	// I12
+	 ('uses_technical_interface'	(usedTechIntfs += [TechnicalInterface]+) )? 	// I13
+	 ('offers_functionality'		(functions  += [ProgramFunction])+)? ;			// I14
+
+ProgramModule:	'sourceModule' name = ID
+	 ('includes_modules'			(inclModules += [IncludedSourceModule]+) )?;	// I15
+
+IncludedSourceModule:	'includedSourceModule' name = ID;
+
+DeploymentPackage: 'deploymentPackage' name = ID
+	('contains' (modules += [SourceModule]+) )? ;	 
+
+ApplicationInterface:	'appInterface' name=ID
+	('protocol' 	protocol=AppInterfaceProtocol )? 	// Add  specific attributes as required 
+	('provided_by' 	extSource=[ExternalSource] )? ;		// Also support interfaces to external modules
+
+TechnicalInterface: 'techInterface'  name = ID 
+	('protocol' 	protocol=TechInterfaceProtocol )? 
+	('provided_by' 	extSource=[ExternalSource] ) ? ;  	// Optionally capture module delivering interface 
+	 
+ProgramFunction: 'programFunction' name = ID ;
+
+ExternalSource: 'external_source' name = ID;
+
+	 
+//Supporting types for Implementation
+DatasetUsed: dataset=[Dataset] (':' usageType=DatasetUsageType)?;
+
+
+enum DatasetUsageType:  CREATE | UPDATE | READ | DELETE;
+enum ISInteractionProtocol: HTTPS | TCPIP | JBDC | EASY | GUI | FAST ;
+enum AppInterfaceProtocol: HTTPS | TCPIP | FTP | EASY | FAST ;  	// see also IS InteractionProtocol
+enum TechInterfaceProtocol: HTTPS | TCPIP | FTP | EASY | FAST ;  	// see also IS InteractionProtocol
+
+
+/*-------------------- Architecture Compliance Matrices -------------------- */
+XREFImplementationToArchitecture:
+	XREF_Interface_ISService | XREF_TechInterface_TIService | 
+	XREF_ProgramFunction_ISFeature | XREF_SourceModule_ISComponent | XREF_Dataset_InformationObject;
+
+XREF_Interface_ISService:  		'xref_Interface_ISService'		 name=ID '{' appInf=[ApplicationInterface] 'realizes' isService=[ISService]'}';			// T01
+XREF_SourceModule_ISComponent:	'xref_SourceModule_ISComponent'	 name=ID '{' source=[SourceModule] 'part_of' isComponent=[ISPhysicalComponent] '}';		// T02							
+XREF_Dataset_InformationObject:	'xref_Dataset_InformationObject' name=ID '{' data=[Dataset] 'realizes' infObj =[InformationObject]'}';					// T03
+XREF_TechInterface_TIService: 	'xref_TechInterface_TIService'	 name=ID '{' techInf=[TechnicalInterface] 'realizes' tiService=[TIService]'}';			// T04
+XREF_ProgramFunction_ISFeature: 'xref_ProgramFunction_ISFeature' name=ID '{' progFunction=[ProgramFunction] 'corresponds_to' isFeature=[ISFeature]'}';	// T05

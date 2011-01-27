@@ -1,0 +1,3 @@
+import org::xtext::dvc::sadl::sadl;
+
+// sortedGreetings(Model this) :  	this.greetings.sortBy(g|g.name.toLowerCase());

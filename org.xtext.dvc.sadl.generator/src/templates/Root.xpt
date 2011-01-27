@@ -1,0 +1,17 @@
+«IMPORT org::xtext::dvc::sadl::sadl»
+
+
+«DEFINE Root FOR ArchitectureConcept-»
+«FILE "ServiceInformationMatrix.txt" APPOUTLET-»
+No implementation for  «this.eClass().name»  «this.name»  
+«ENDFILE»
+«ENDDEFINE»
+
+«DEFINE Root FOR ISService-»
+   «EXPAND ISService::Root »
+«ENDDEFINE»
+
+«DEFINE Root FOR ISLogicalComponent-»
+   «EXPAND ISLogicalComponent::Root »
+«ENDDEFINE»
+

@@ -1,0 +1,11 @@
+«IMPORT org::xtext::dvc::sadl::sadl»
+
+«EXTENSION templates::Extensions»
+
+«DEFINE Root FOR ISService-» 
+«FILE "XMI_MODEL.xml" APPOUTLET-»
+<packagedElement xmi:type="uml:Class" xmi:id="ISS_«this.name»" name="«this.name»" />
+
+«ENDFILE»
+
+«ENDDEFINE»
