@@ -16,8 +16,7 @@ Model:
     'model' name=ID
         architecture=ArchitectureModel
         implementation=ImplementationModel
-        compliance=ComplianceModel
-    ;	
+        compliance=ComplianceModel    ;	
     
 ArchitectureModel:
 	'architecture:' 	archiElements+=ArchitectureConcept+;
