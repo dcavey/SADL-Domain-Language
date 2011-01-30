@@ -47,7 +47,7 @@ ArchitectureConcept :
 	InformationObject | InformationElement |
 	ISService |  ISLogicalComponent | ISPhysicalComponent | DesignDecision | 
 	TIService |
-	/* ISServiceInteraction  | */
+	ISServiceInteraction  |
 	ISCollaborationContract | TIServiceInteraction |
 	BusinessDomain | BusinessServiceGroup | 
 	InformationDomain | InformationObjectGroup |
@@ -153,8 +153,10 @@ NonFunctionalRequirements: 	'nonFuncReqs' name=ID
 		('peak_volume'				peak_volume=STRING)?			// peak volume of data per time-unit  				
 		;
 
+AbstractInformationElement:  (InformationObject | InformationElement);
+
 InformationObject:	'informationObject'	name = ID 
-		('consists_of' attributes +=  [InformationElement]+)?  ;
+		('consists_of' ('set_of')? attributes +=  [AbstractInformationElement]+)?  ;
 
 InformationElement: 'informationElement' name = ID;
 
